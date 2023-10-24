@@ -6,14 +6,14 @@ const sendEmail = require("../utils/email/sendEmail");
 const jwt = require("jsonwebtoken")
 require("dotenv").config()
 const  upload  = require ('../Cloudinary/multer')
-const { Console } = require('console');
 
 getLoggedIn = async (req, res) => {
     try {
         auth.verify(req, res, async function () {
         const loggedInUser = await User.findOne({ _id: req.userId });
         if (loggedInUser)
-        {   return res.status(200).json({
+        {   
+            return res.status(200).json({
             loggedIn: true,
             user: { 
                 _id:loggedInUser._id,
@@ -92,33 +92,23 @@ registerUser = async (req, res) => {
                 lastName: lastName,
                 email: email,
                 friends: [],
-                follwoing: [],
+                following: [],
                 follower: [],
                 message: [],
                 works: [],
                 comicLibrary: [],
                 like: [],
                 dislike: [],
-                notification: [],
-                profile: {},
+                notification:[],
+                profile: {"age": 0,
+                "gender": "N/A",
+                "userName": firstName,
+                "myStatement":"Stay Hungry, Stay Foolish",
+                "icon": ""
+                    },
                 passwordHash: passwordHash
         });
 
-        newUser.friends= [],
-        newUser.following= [],
-        newUser.follower= [],
-        newUser.message= [],      
-        newUser.works= [],      
-        newUser.comicLibrary=[],
-        newUser.like= [],
-        newUser.dislike= [],
-        newUser.notification= [],
-        newUser.profile= {"age": 0,
-                        "gender": "N/A",
-                        "userName": newUser.firstName,
-                        "myStatement":"Stay Hungry, Stay Foolish",
-                        "icon": newUser.firstName.substring(0,1).toUpperCase()+newUser.lastName.substring(0,1).toUpperCase()
-                    }
     
         const savedUser = await newUser.save();
 
@@ -189,6 +179,7 @@ loginUser = async (req, res) => {
         // LOGIN THE USER
         const token = auth.signToken(existingUser);
 
+        
         await res.cookie("token", token, {
             httpOnly: true,
             secure: true,
@@ -226,7 +217,7 @@ logoutUser= async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: "none"
-    }).status(200).json({
+        }).status(200).json({
             success:true,
             user:null
         });
@@ -243,6 +234,7 @@ logoutUser= async (req, res) => {
         }).send();
     }
 }
+
 getUsers = async (req, res) => {
     await User.find({}, (err, users) => {
         if (err) {
@@ -274,7 +266,7 @@ getUserData = async(req,res) =>{
                 success: false,
                 errorMessage: 'get user data error!'
             })
-            })
+        })
 }
 
 //get a userdata by email
@@ -306,23 +298,21 @@ updateUserIcon =async (req,res) => {
         })
     }
 
-    console.log(file.path)
 
-    User.findOne({ _id: req.body._id }, (err, user) => {
+        let user=await User.findOne({ _id: req.body._id })
+        if(!user)  { return res.status(404).json({
+            success: false,
+            errorMessage: 'User data not updated!'})}
         
-        if (err) {
-            return res.status(404).json({
-                success: false,
-                errMessage: 'User not found!'
-            })
-        }
-        
-        user.profile.icon=file.path
+        user.profile.icon=file.path;
+        user.profile.userName=req.body.userName;
+        user.profile.age=req.body.age;
+        user.profile.gender=req.body.gender;
+        user.profile.myStatement=req.body.myStatement;
         
 
-        user.save()
-            .then(() => {
-                console.log(user);
+        await user.save()
+            .then(() => { 
                 return res.status(200).json({
                     success: true,
                     id: user._id,
@@ -337,7 +327,6 @@ updateUserIcon =async (req,res) => {
                     message: 'User data not updated!'
                 })
             })
-    })
 }
 
 updateUser =async (req,res) => {
@@ -351,7 +340,7 @@ updateUser =async (req,res) => {
         })
     }
 
-    User.findOne({ _id: body._id }, (err, user) => {
+    await User.findOne({ _id: body._id }, async(err, user) => {
         
         if (err) {
             return res.status(404).json({
@@ -373,7 +362,7 @@ updateUser =async (req,res) => {
         user.notification=body.notification;
         user.profile=body.profile;
         
-        user.save()
+        await user.save()
             .then(() => {
                 console.log(" updated user SUCCESS!!!");
                 return res.status(200).json({
@@ -419,7 +408,7 @@ sendUserEmail = async (req, res) => {
             })
         }
 
-        clientURL="sbrook.herokuapp.com";
+        clientURL="http://localhost:3000";
         const link = `${clientURL}/passwordReset/${token}/${existingUser._id}/`;
         await sendEmail(existingUser.email,"Password Reset Request",{name: existingUser.profile.userName,link: link,},"./template/requestResetPassword.handlebars");
       
@@ -496,7 +485,7 @@ resetPassword = async (req, res) => {
 changePassword = async (req, res) => {
     try {
         const { email, password} = req.body;
-       console.log(password);
+        console.log(password);
         console.log(email);
         
         const saltRounds = 10;

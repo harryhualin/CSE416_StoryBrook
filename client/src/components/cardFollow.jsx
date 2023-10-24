@@ -1,33 +1,51 @@
 import React from "react";
 import { GlobalStoreContext } from '../store'
-import { VisibilityContext } from "react-horizontal-scrolling-menu";
+import AuthContext from '../auth';
 import Box from '@mui/material/Box';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Avatar from '@mui/material/Avatar';
 import Cards from '@mui/material/Card';
+import thumbup from '../Images/thumbup.png'
+import view from '../Images/view.png'
 
 export function Card(props) {
   const { store } = React.useContext(GlobalStoreContext);
-  const visibility = React.useContext(VisibilityContext);
-  const { work,ItemId } = props;
-  const visible = visibility.isItemVisible(ItemId);
-
-  var url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGvVjITwe377mswrgJw8klsFzO3KT8dmbaeg&usqp=CAU";
+  const { auth } = React.useContext(AuthContext);
+  const { work } = props;
+  
   var bookUrl="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf9kvIzoVAbJmLgv5k6kHQj6czGK0V0Qew1w&usqp=CAU";
-  let response=url;
-  if(work.workType==0) {response=bookUrl};
+  let response="";
+  if(work.workType===1) {response=work.content[0];}
+  if(work.workType===0) {response=bookUrl};
 
   function handleOpen(event, id){
     event.stopPropagation();
     console.log(id);
     store.readWork(id);
   }
+
+  let icon = "";
+    for (let i = 0; i < auth.userList.length; i++){
+      if (work.authorId === auth.userList[i]._id){
+        if (auth.userList[i].profile.icon === "") {
+            let lastname=auth.userList[i].lastName.substring(0,1).toUpperCase();
+            let firstname=auth.userList[i].firstName.substring(0,1).toUpperCase();
+            icon = 
+                <Avatar position='relative' alignContent='center' sx={{height:'40px',width:'40px',bgcolor:"darkgrey",border:"1px solid",borderRadius:"0.8cm",marginRight: '5%'}}>
+                    {firstname+lastname}
+                </Avatar>
+            ;
+        } else {
+            icon = 
+                <Avatar alt={work.author} src={auth.userList[i].profile.icon} sx={{marginRight: '5%'}} />
+            ;
+        }
+    }
+    }
   
   return (
-    <Cards  hoverable="true" sx={{width:"20vw",height:"38vh",marginLeft:"4vw", userSelect: "none" }} 
+    <Cards  hoverable="true" sx={{width:"25vw",height:"90%",marginLeft:"4vw", userSelect: "none" }}  
       role="button"
       
       // sx={{
@@ -45,28 +63,28 @@ export function Card(props) {
        <CardMedia
                 component="img"
                 height="80%"
-                image= {work.content[0]}
+                width="100%"
+                image= {response}
                 alt= {work.name}
             />
                 <Box display="flex" sx={{bgcolor:"#C39BD3",position:"relative",width:"100%",height:"20%",justifyContent: 'space-between'}}> 
-                    <Box  sx={{bgcolor:"",position:"relative",width:"30%"}}>
-                    <Typography sx={{justifyContent:'center'}}>
-                        {work.name}
-                    </Typography>
+                    <Box sx={{position:"relative",width:"30%"}}>
+                      <Typography sx={{p: 1, flexGrow: 1,fontSize: "25px", fontFamily: "Comic Sans MS",paddingLeft: "3%"}}>
+                          {work.name}
+                      </Typography>
                     </Box>
-                    <Box sx={{display:"flex",alignContent:'center'}}>
-                        <RemoveRedEyeIcon></RemoveRedEyeIcon>
-                        <Typography >
+                    <Box sx={{position:"relative",width:"60%",display:"flex", paddingTop:'2%'}}>
+                        <img src={view} alt="" height='75%' width='20%'></img>
+                        <Typography sx={{marginLeft: '2%', marginRight: '2%', fontSize: "25px", fontFamily: "Comic Sans MS"}} >
                             {work.view}
                         </Typography>
-                        <ThumbUpIcon size='20%'></ThumbUpIcon>
-                        <Typography>
+                        <img src={thumbup} alt="" height='75%' width='17.5%'></img>
+                        <Typography sx={{marginLeft: '2%', marginRight: '2%', fontSize: "25px", fontFamily: "Comic Sans MS"}}>
                             {work.likes.length}
                         </Typography>
-                        <Avatar alt={work.author} src={work.avatar} />
+                        {icon}
                     </Box>
                 </Box>
-
     </Cards>
   );
 }

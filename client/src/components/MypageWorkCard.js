@@ -1,18 +1,18 @@
 //author kai
 
-import { useContext, useState } from 'react'
+import { useContext} from 'react'
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
+import thumbup from '../Images/thumbup.png'
+import view from '../Images/view.png'
 
 
 function MypageWorkCard(props) {
@@ -32,12 +32,12 @@ function MypageWorkCard(props) {
     
     let deletebutton=''
     let publishflag="published";
-    if(work.published.publish==false) {publishflag="editing";}
+    if(work.published.publish===false) {publishflag="editing";}
     
     if(auth.user===null){
         deletebutton="";
     }
-    else if(auth.user.email==work.author){
+    else if(auth.user.email===work.author){
         deletebutton= 
                 <IconButton style={{bottom:'0%'}} onClick={(event) => {
                     handleDeleteWork(event, work._id)
@@ -48,39 +48,57 @@ function MypageWorkCard(props) {
     var url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGvVjITwe377mswrgJw8klsFzO3KT8dmbaeg&usqp=CAU";
     var bookUrl="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf9kvIzoVAbJmLgv5k6kHQj6czGK0V0Qew1w&usqp=CAU";
    
-    
     let response=url;
-    if(work.workType==0) {response=bookUrl};
+    if(work.workType===1&&work.published.publish===true) {response=work.content[0]}
+    if(work.workType===0) {response=bookUrl};
+
+    let icon = "";
+    for (let i = 0; i < auth.userList.length; i++){
+        if (work.authorId === auth.userList[i]._id){
+            if (auth.userList[i].profile.icon === "") {
+                let lastname=auth.userList[i].lastName.substring(0,1).toUpperCase();
+                let firstname=auth.userList[i].firstName.substring(0,1).toUpperCase();
+                icon = 
+                    <Avatar position='relative' alignContent='center' sx={{height:'40px',width:'40px',bgcolor:"darkgrey",border:"1px solid",borderRadius:"0.8cm"}}>
+                        {firstname+lastname}
+                    </Avatar>
+                ;
+            } else {
+                icon = 
+                    <Avatar alt={work.author} src={auth.userList[i].profile.icon} />                ;
+            }
+        }
+    }
 
     let workElement =
-        <Box key={work.id} sx={{ bgcolor:"red",position:"relative",width:"30%",height:"60%",marginLeft:"10%",marginTop:"2%",marginBottom:"2.5%",mr:"5%" }}> 
+        <Box key={work.id} sx={{position:"relative",width:"40%",height:"100%",marginLeft:"5%",marginTop:"2%",marginBottom:"2.5%" }}> 
            
         <Card id={work.id} hoverable="true" sx={{ position:"relative",width:"100%",height:"60%"}} onClick={(event) => {handleOpen(event, work._id)}}>
-           <Box display= "flex" sx={{bgcolor:"lightgrey",position:"absolute",height:"10%",borderRadius:"0.1cm",alignItems:'center'}}> {deletebutton}{publishflag}  </Box>
+           <Box display= "flex" sx={{bgcolor:"lightgrey",position:"absolute",height:"10%",borderRadius:"0.1cm",alignItems:'center',paddingRight:"5%"}}> {deletebutton}{publishflag}  </Box>
             <CardMedia
                 component="img"
-                height="70%"
-                width="100%"
+                height="150"
+                width="auto"
                 image= {response}
                 alt= {work.name}
             />
            
-                <Box display="flex" sx={{bgcolor:"lightgreen",position:"relative",width:"100%",height:"20%",justifyContent: 'space-between'}}> 
-                    <Box  sx={{bgcolor:"",position:"relative",width:"30%"}}>
-                    <Typography sx={{justifyContent:'center'}}>
-                        {work.name}
-                    </Typography>
+                <Box display="flex" sx={{bgcolor:"#C39BD3",position:"relative",width:"100%",height:"12.5%",justifyContent: 'space-between'}}> 
+                    <Box sx={{position:"relative",width:"30%"}}>
+                      <Typography sx={{p: 1, flexGrow: 1,fontSize: "25px", fontFamily: "Comic Sans MS",marginLeft: "3%"}}>
+                          {work.name}
+                      </Typography>
                     </Box>
-                    <Box sx={{display:"flex",alignContent:'center'}}>
-                        <RemoveRedEyeIcon></RemoveRedEyeIcon>
-                        <Typography >
+                    <Box sx={{position:"relative",width:"55%",display:"flex", paddingTop:'2%'}}>
+                        <img src={view} alt="" height='75%' width='20%'></img>
+                        <Typography sx={{marginLeft: '5%', marginRight: '5%', fontSize: "25px", fontFamily: "Comic Sans MS"}} >
                             {work.view}
                         </Typography>
-                        <ThumbUpIcon size='20%'></ThumbUpIcon>
-                        <Typography>
+                        <img src={thumbup} alt="" height='75%' width='17.5%'></img>
+                        <Typography sx={{marginLeft: '5%', marginRight: '5%', fontSize: "25px", fontFamily: "Comic Sans MS"}}>
                             {work.likes.length}
                         </Typography>
-                        <Avatar alt={work.author} src={work.avatar} />
+                        {icon}
                     </Box>
                 </Box>
         </Card>

@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState} from 'react';
 import { Link } from 'react-router-dom'
 import AuthContext from '../auth';
 import Button from '@mui/material/Button';
@@ -6,13 +6,11 @@ import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useHistory, useLocation } from 'react-router-dom'
 import { GlobalStoreContext } from '../store'
-import { TextField } from '@mui/material';
 import DeleteModal from './DeleteModal';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -25,6 +23,7 @@ import story_create from '../Images/story_create.png';
 import NotificationModal from './NotificationModal';
 import ringing from '../Images/ringing.png';
 import not_ringing from '../Images/not_ringing.png';
+import Avatar from '@mui/material/Avatar';
 
 
 export default function AppBanner() {
@@ -45,7 +44,9 @@ export default function AppBanner() {
         setAnchorEl(null);
     };
 
-    const handleSplashScreen = () => {
+    const handleSplashScreen = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         if(location.pathname.includes("create")){
             setpopUp(true);
             setTargetPage("splash");
@@ -75,8 +76,12 @@ export default function AppBanner() {
             setTargetPage("myPage")
         }
         else {
-            handleMenuClose();
-            history.push('/myPage')
+            if(store.status===0||store.status===1)
+            {handleMenuClose();
+            history.push('/myPage')}
+            else {
+                alert("Pick one type story first ^0^.")
+            }
         }
             
     }
@@ -93,11 +98,11 @@ export default function AppBanner() {
             
     }
 
-    const handleCreate = () => {
-        if(store.status == 0 || store.status == 1)
+    const handleCreate = (event) => {
+        event.stopPropagation();
+        if(store.status === 0 || store.status === 1)
         {  
             //editToolbar= <CreatePageBanner/>
-            console.log(store.status)
             store.createWork();
             setTargetPage("Creating");
         }
@@ -179,13 +184,14 @@ export default function AppBanner() {
             // if (store.currentWork && store.currentWork.published.publish == false && targetPage == "Creating"){
             //     editToolbar = <CreatePageBanner/>
             // } else 
-            if((store.status==0||store.status==1)){
+            if((store.status===0||store.status===1)){
                 let createUrl="";
-                if(store.status==0) {createUrl=story_create}
-                else if(store.status==1) {createUrl=comic_create};
+                if(store.status===0) {createUrl=story_create}
+                else if(store.status===1) {createUrl=comic_create};
                 editToolbar=
-                <IconButton variant="outlined" onClick={handleCreate} sx={{top:'5px',height:'50px',width:'100px'}}>
+                <IconButton variant="outlined" onClick={(event)=>handleCreate(event)} sx={{top:'5px',height:'50px',width:'100px'}}>
                          <img src={createUrl}
+                         alt=""
             height='32'
           ></img>
                         </IconButton> 
@@ -194,21 +200,18 @@ export default function AppBanner() {
     }
     
     function getAccountMenu(loggedIn) {
-        
         if(loggedIn){
-            if (auth.user.profile.icon == "") {
+            if (auth.user.profile.icon === "") {
                 let lastname=auth.user.lastName.substring(0,1).toUpperCase();
                 let firstname=auth.user.firstName.substring(0,1).toUpperCase();
                 return(
-                    <Box position='relative' alignContent='center' sx={{height:'40px',width:'40px',bgcolor:"darkgrey",border:"1px solid",borderRadius:"0.8cm",paddingTop:'10%'}}>
+                    <Avatar position='relative' alignContent='center' sx={{height:'40px',width:'40px',bgcolor:"darkgrey",border:"1px solid",borderRadius:"0.8cm",paddingTop:'10%'}}>
                         {firstname+lastname}
-                    </Box>
+                    </Avatar>
                 );
             } else {
                 return(
-                    <Box style={{  width:"40px", height:"40px" , borderRadius:"0.8cm" ,backgroundImage: `url(${auth.user.profile.icon})`, backgroundPosition: 'center', backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat', marginLeft:"1rem"}}>
-                    </Box>
+                    <Avatar alt={auth.user.userName} src={auth.user.profile.icon} />
                 );
             }
             
@@ -219,18 +222,20 @@ export default function AppBanner() {
     let banner="";
 
     let imageUrl=logo;
-    if(store.status==0) {imageUrl=logo_tale}
-    else if(store.status==1) {imageUrl=logo_comic};
+    if(store.status===0) {imageUrl=logo_tale}
+    else if(store.status===1) {imageUrl=logo_comic};
 
     const [showNotification, setShowNotification] = useState(false)
-    const handleNotification = () => setShowNotification(!showNotification)
+    const handleNotification = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        auth.loadNotification();
+        setShowNotification(!showNotification)}
 
     let notificationButton = "";
     let notificationSection = "";
     
-    console.log(auth.loggedIn);
-    if (auth.loggedIn === true && (store.status==0||store.status==1)){
-        console.log(auth.user);
+    if (auth.loggedIn === true && (store.status===0||store.status===1)){
         if (auth.user.notification.length === 0){
             notificationButton = not_ringing;
         }else {
@@ -238,16 +243,17 @@ export default function AppBanner() {
         }
         notificationSection = 
         <div>
-            <Button onClick={(event) => {handleNotification()}} sx={{ width: "200px", height: "50px", backgroundImage:`url(${notificationButton})`, 
-            backgroundPosition: "center",backgroundSize: "contain", backgroundRepeat: "no-repeat", cursor: "pointer" }}>
-            </Button>
+            <IconButton onClick={(event) => {handleNotification(event)}} sx={{ width: "50px", height: "50px",  
+            backgroundPosition: "center",backgroundSize: "contain", backgroundRepeat: "no-repeat", cursor: "pointer",marginTop:"10%" }}>
+                <img src={notificationButton} alt="" height='32' width='32'></img>
+            </IconButton>
             { showNotification ? <NotificationModal/> : null }
         </div>
     }
 
    if(store)
-    banner= <Box sx={{ flexGrow: 1 }} >
-            <AppBar position="static">
+    banner= <Box sx={{ flexGrow: 1,width:"100%",height:"10%"}} >
+            <AppBar position="fixed">
                 <Toolbar sx={{bgcolor:"#e0e0e0"}}>
                     {/* <Typography                        
                         variant="h4"
@@ -257,7 +263,7 @@ export default function AppBanner() {
                         onClick={()=>{handleSplashScreen()}}                  
                     > */}
                         <Box position="relative" sx={{ display:"flex", width:"10%",height:"100%",alignItems:"center", flexDirection:"column"}}>
-                        <Button onClick={(event) => {handleSplashScreen()}} sx={{ width: "200px", height: "50px", backgroundImage:`url(${imageUrl})`, 
+                        <Button onClick={(event) => {handleSplashScreen(event)}} sx={{ width: "200px", height: "50px", backgroundImage:`url(${imageUrl})`, 
                         backgroundPosition: "center",backgroundSize: "contain", backgroundRepeat: "no-repeat", cursor: "pointer" }}>
                         </Button>
                         </Box>

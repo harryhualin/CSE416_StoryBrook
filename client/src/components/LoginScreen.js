@@ -3,21 +3,19 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useContext,useState } from 'react';
+import { useContext} from 'react';
 import { GlobalStoreContext } from '../store';
 import AuthContext from '../auth';
 import ErrorModal from './ErrorModal';
-import Container from '@mui/material/Container';
 import Copyright from './Copyright';
 import Paper from '@mui/material/Paper';
+import log from '../Images/log.png';
 
 
 
@@ -39,7 +37,7 @@ export default function LogInScreen() {
 
     return (
         <ThemeProvider theme={theme}>
-        <Grid container component="main" sx={{ height: '40vh' }}>
+        <Grid container component="main" sx={{ height: '94.5vh' }}>
           <CssBaseline />
           <ErrorModal></ErrorModal>
           <Grid
@@ -48,7 +46,7 @@ export default function LogInScreen() {
             sm={4}
             md={7}
             sx={{
-              backgroundImage: 'url(https://source.unsplash.com/random)',
+              backgroundImage: `url(${log})`,
               backgroundRepeat: 'no-repeat',
               backgroundColor: (t) =>
                 t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
@@ -94,10 +92,6 @@ export default function LogInScreen() {
                   id="password"
                   autoComplete="current-password"
                 />
-                <FormControlLabel
-                  control={<Checkbox value="remember" color="primary" />}
-                  label="Remember me"
-                />
                 <Button
                   type="submit"
                   fullWidth
@@ -108,12 +102,12 @@ export default function LogInScreen() {
                 </Button>
                 <Grid container>
                   <Grid item xs>
-                    <Link href="#" variant="body2">
+                    <Link to="/requestPasswordReset/" variant="body2">
                       Forgot password?
                     </Link>
                   </Grid>
                   <Grid item>
-                    <Link href="#" variant="body2">
+                    <Link to="/register/" variant="body2">
                       {"Don't have an account? Sign Up"}
                     </Link>
                   </Grid>

@@ -1,4 +1,4 @@
-import { FormControlUnstyledContext } from '@mui/base';
+
 import { createContext, useContext, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import api from '../api'
@@ -281,9 +281,9 @@ function GlobalStoreContextProvider(props) {
             );
             auth.user.works.push(newWork._id);
             auth.updateUser();
-            if (store.status == 1 )
+            if (store.status === 1 )
                 history.push("/create/")
-            else if (store.status == 0)
+            else if (store.status === 0)
                 history.push("/createStory/")
             // IF IT'S A VALID LIST THEN LET'S START EDITING IT
             // console.log(this.currentWork.id);
@@ -356,10 +356,16 @@ function GlobalStoreContextProvider(props) {
     store.deleteWork = async function (WorkToDelete) {
         let response = await api.deleteWorkById(WorkToDelete);
         if (response.data.success) {
+            for (let s =0;s<store.workList.length;s++)
+            {   if(store.workList[s]._id===WorkToDelete)
+                {
+                    store.workList.splice(s,1);
+                }
+            }
             store.closeCurrentWork();
             // delete the work from user's works array
             for (let i =0;i<auth.user.works.length;i++)
-            {   if(auth.works[i]===WorkToDelete)
+            {   if(auth.user.works[i]===WorkToDelete)
                 {
                     auth.user.works.splice(i,1);
                     auth.updateUser();
@@ -393,12 +399,12 @@ function GlobalStoreContextProvider(props) {
 
             if(work)
             {
-                if(work.published['publish']==true)
-                {   if(work.workType==1)  history.push(`/read/${id}`);
-                    else if (work.workType==0) history.push(`/readStory/${id}`); }
-                else if (work.published['publish']==false)
-                {   if(work.workType==1)  history.push(`/create/`);
-                    else if (work.workType==0) history.push(`/createStory/`);
+                if(work.published['publish']===true)
+                {   if(work.workType===1)  history.push(`/read/${id}`);
+                    else if (work.workType===0) history.push(`/readStory/${id}`); }
+                else if (work.published['publish']===false)
+                {   if(work.workType===1)  history.push(`/create/`);
+                    else if (work.workType===0) history.push(`/createStory/`);
                 }
                 
             }
@@ -406,9 +412,8 @@ function GlobalStoreContextProvider(props) {
         }
     }
     store.readWork = async function (id) {     
-        console.log(id);
+        console.log("read work:"+id);
         let response = await api.getWorkById(id);
-        console.log(response);
         if (response.data.success) {
             let work = response.data.work;
             work.view=work.view+1;
@@ -419,15 +424,16 @@ function GlobalStoreContextProvider(props) {
                     type: GlobalStoreActionType.SET_CURRENT_WORK,
                     payload: work                      
                 });  
+                auth.setTargetUser(work.authorId);
             }
             if(work)
             {
-                if(work.published['publish']==true)
-                {   if(work.workType==1)  history.push(`/read/${id}`);
-                    else if (work.workType==0) history.push(`/readStory/${id}`); }
-                else if (work.published['publish']==false)
-                {   if(work.workType==1)  history.push(`/create/`);
-                    else if (work.workType==0) history.push(`/createStory/`);
+                if(work.published['publish']===true)
+                {   if(work.workType===1)  history.push(`/read/${id}`);
+                    else if (work.workType===0) history.push(`/readStory/${id}`); }
+                else if (work.published['publish']===false)
+                {   if(work.workType===1)  history.push(`/create/`);
+                    else if (work.workType===0) history.push(`/createStory/`);
                 }
                 
             }
@@ -436,7 +442,7 @@ function GlobalStoreContextProvider(props) {
     }
 
     store.updateWork = async function (newWork) {
-        if(newWork.author==auth.user.email){    
+        if(newWork.author===auth.user.email){    
                 let response = await api.updateWorkById(newWork._id, newWork);
                 // newAuth.works.push(response.data.work._id);
                 if (response.data.success) {
@@ -462,6 +468,18 @@ function GlobalStoreContextProvider(props) {
             });
         }
     }
+    store.publishWork = async function () {   
+        const response = await api.updateWorkById(store.currentWork._id, store.currentWork);
+        if (response.data.success) {
+            storeReducer({
+                type: GlobalStoreActionType.SET_CURRENT_WORK,
+                payload: response.data.work
+            });  
+            history.push(`/read/${store.currentWork._id}`);
+        }
+    }
+  
+  
     // THIS FUNCTION ENABLES THE PROCESS OF EDITING AN ITEM
     store.setIsEditActive = function () {
         storeReducer({
@@ -506,7 +524,7 @@ function GlobalStoreContextProvider(props) {
         });
     }
     store.setMode= async function (input){
-        if(input=="works"){
+        if(input==="works"){
             const response = await api.getWorkList();
             if (response.data.success) { 
                 let workArray = response.data.data;
@@ -556,59 +574,6 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-        }
-        else {
-        storeReducer({
-            type: GlobalStoreActionType.MODE,
-            payload:{mode:input,
-                workList:store.workList
-            }
-        });}
-    }
-    store.like = async function (id) {
-        let response = await api.getWorkById(id);
-        if (response.data.success) {
-            let top5List = response.data.top5List;
-            if(top5List.dislikes.includes(auth.user.email)){
-                top5List.dislikes.pop(auth.user.email);
-                top5List.likes.push(auth.user.email);
-            }
-            else if(!top5List.likes.includes(auth.user.email)){
-                top5List.likes.push(auth.user.email);
-            }
-            else{
-                top5List.likes.pop(auth.user.email);
-            }
-            store.updateList2(top5List);
-        }
-    }
-    store.dislike = async function (id) {
-        let response = await api.getWorkById(id);
-        if (response.data.success) {
-            let top5List = response.data.top5List;
-            if(top5List.likes.includes(auth.user.email)){
-                top5List.likes.pop(auth.user.email);
-                top5List.dislikes.push(auth.user.email);
-            }
-            else if(!top5List.dislikes.includes(auth.user.email)){
-                top5List.dislikes.push(auth.user.email);
-            }
-            else{
-                top5List.dislikes.pop(auth.user.email);
-            }
-            store.updateList2(top5List);
-        }
-    }
-    store.comment = async function (input,id) {
-        let response = await api.getWorkById(id);
-        if (response.data.success) {
-            let top5List = response.data.top5List;
-            let author=auth.user.firstName+" "+auth.user.lastName;
-            let payload={comment:input,author:author}
-            top5List.comment.push(payload);
-            store.updateList2(top5List);
-        }
-    }
     function swap(arr, xp, yp){
         var temp = arr[xp];
         arr[xp] = arr[yp];

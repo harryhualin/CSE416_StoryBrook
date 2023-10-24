@@ -1,11 +1,9 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext} from 'react'
 import { GlobalStoreContext } from '../store'
 import Box from '@mui/material/Box';
 import Copyright from './Copyright'
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import AuthContext from '../auth';
-import WorkCard from './WorkCard.js';
 import Carousel, {CarouselItem} from "./Carousel"
 import HomeScreenFollow from "./HomeScreenFollow"
 import { useHistory } from 'react-router-dom'
@@ -22,7 +20,8 @@ const HomeScreen = () => {
     let showCases=<CarouselItem></CarouselItem>;
     if(store.workList)
         {   let mylist=[]
-            mylist = store.workList.filter(item => item.published["publish"] === true&&item.workType===store.status).slice(0,4);
+            mylist = store.workList.filter(item => item.published["publish"] === true&&item.workType===store.status);
+            mylist=mylist.slice(mylist.length-3,mylist.length);
             showCases= mylist.map((item,index)=>
                 <CarouselItem key={"CarouselItem"+index} item={item}>
                 {item.content[0]}
@@ -52,8 +51,8 @@ const HomeScreen = () => {
                     </CarouselItem> */}
                 </Carousel>
             </div>
-            <Box>
-                <Typography component="h1" variant="h3" sx={{position:'relative',marginLeft:'5%',height:'100%',width:'100%', fontFamily: "Comic Sans MS"}}>
+            <Box borderBottom="1px solid black">
+                <Typography component="h1" variant="h3" sx={{position:'relative',marginLeft:'5%',height:'100%',width:'95%', fontFamily: "Comic Sans MS"}}>
                     Lastest
                 </Typography> 
                 <Button id='lastest' onClick={(event) => {handleViewMore(0)}} sx={{position:'relative',marginLeft:'90%',width:'10%',bgcolor:'white', fontFamily: "Comic Sans MS"}}>
@@ -64,8 +63,8 @@ const HomeScreen = () => {
                     </HomeScreenFollow>
                 </Box>
             </Box>
-            <Box>
-                <Typography component="h1" variant="h3" sx={{position:'relative',marginLeft:'5%',height:'100%',width:'100%', fontFamily: "Comic Sans MS"}}>
+            <Box borderBottom="1px solid black">
+                <Typography component="h1" variant="h3" sx={{position:'relative',marginLeft:'5%',height:'100%',width:'95%', fontFamily: "Comic Sans MS"}}>
                     Most View
                 </Typography> 
                 <Button id='MostView' onClick={(event) => {handleViewMore(1)}} sx={{position:'relative',marginLeft:'90%',width:'10%',bgcolor:'white', fontFamily: "Comic Sans MS"}}>
@@ -76,8 +75,8 @@ const HomeScreen = () => {
                     </HomeScreenFollow>
                 </Box>
             </Box>
-            <Box>
-                <Typography component="h1" variant="h3" sx={{position:'relative',marginLeft:'5%',height:'100%',width:'100%', fontFamily: "Comic Sans MS"}}>
+            <Box borderBottom="1px solid black"> 
+                <Typography component="h1" variant="h3" sx={{position:'relative',marginLeft:'5%',height:'100%',width:'95%', fontFamily: "Comic Sans MS"}}>
                     Most Likes
                 </Typography> 
                 <Button id='mostLikes' onClick={(event) => {handleViewMore(2)}} sx={{position:'relative',marginLeft:'90%',width:'10%',bgcolor:'white', fontFamily: "Comic Sans MS"}}>

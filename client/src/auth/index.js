@@ -46,8 +46,8 @@ function AuthContextProvider(props) {
                     user: payload.user,
                     loggedIn: payload.loggedIn,
                     error: false,
-                    targetUser:auth.targetUser,
-                    userList: auth.userList
+                    targetUser:null,
+                    userList: []
 
                 });
             }
@@ -56,7 +56,7 @@ function AuthContextProvider(props) {
                     user: payload.user,
                     loggedIn: true,
                     error: false,
-                    targetUser:auth.targetUser,
+                    targetUser:null,
                     userList: []
 
                 })
@@ -66,7 +66,7 @@ function AuthContextProvider(props) {
                     user:null,
                     loggedIn: false,
                     error: false,
-                    targetUser:auth.targetUser,
+                    targetUser:null,
                     userList: []
                 })
             }
@@ -75,23 +75,23 @@ function AuthContextProvider(props) {
                     user:payload,
                     loggedIn:true,
                     error:false,
-                    targetUser:auth.targetUser,
-                    userList: auth.userList
+                    targetUser:null,
+                    userList: []
                 })
             }
             case AuthActionType.ERROR: {
                 return setAuth({
-                    user:null,
-                    loggedIn:false,
+                    user:auth.user,
+                    loggedIn:auth.loggedIn,
                     error:payload,
                     targetUser:auth.targetUser,
-                    userList: []
+                    userList: auth.userList
                 })
             }
             case AuthActionType.UPDATE_USER: {
                 return setAuth({
                     user:payload,
-                    loggedIn:true,
+                    loggedIn:auth.loggedIn,
                     error:false,
                     targetUser:auth.targetUser,
                     userList: auth.userList
@@ -110,10 +110,10 @@ function AuthContextProvider(props) {
                 console.log("Following")
                 return setAuth({
                     user:auth.user,
-                    loggedIn:true,
+                    loggedIn:auth.loggedIn,
                     error:false, 
-                    userList: payload,
-                    targetUser:payload
+                    targetUser:auth.targetUser,
+                    userList: payload
                 })
             }
             default:
@@ -172,7 +172,7 @@ function AuthContextProvider(props) {
         }
     }
     auth.logoutUser = async function(){
-       
+        history.push("/");
         const response = await api.logoutUser();
         if(response.status === 200){
             authReducer({
@@ -180,7 +180,6 @@ function AuthContextProvider(props) {
                 payload:null
             })
            
-            history.push("/");
             console.log("logout user");
         }
     }
@@ -369,12 +368,17 @@ function AuthContextProvider(props) {
         try{
             //console.log(auth.user);
             const response = await api.updateUserIcon(payload);
-            if(response.success){
-                console.log(response.data.user)
-                authReducer({
+            if(response.data.success){
+                let newdata=response.data.user;
+                console.log(auth.user);
+                const res = await api.updateUser(newdata);
+                if(res.data.success){
+                    console.log(res.data.user);
+                    authReducer({
                     type: AuthActionType.LOGIN_USER,
-                    payload:response.data.user
+                    payload:res.data.user
                 })
+             }
             }
             
         }
@@ -389,6 +393,7 @@ function AuthContextProvider(props) {
             console.log("upload icon error");
         }
     }
+
     //find user by email 
     auth.setTargetUser=async function(authorId){
         try{
@@ -417,14 +422,15 @@ function AuthContextProvider(props) {
             if(response.data.success){
                 
                 let user=response.data.user;
-               
+                console.log(user.email);
                 user.follower.push(auth.user._id);
+                console.log(user);
                 const res=await api.updateUser(user);
                 if(res.data.success){
                     
-                    const response = await api.getUserbyId(auth.user._id);
-                    if(response.data.success){
-                        let newUser=response.data.user;
+                    const respons = await api.getUserbyId(auth.user._id);
+                    if(respons.data.success){
+                        let newUser=respons.data.user;
                       
                         newUser.following.push(authorId);
                         const respon=await api.updateUser(newUser);
@@ -432,7 +438,7 @@ function AuthContextProvider(props) {
                             console.log("following successfully");
                             authReducer({
                                 type: AuthActionType.LOGIN_USER,
-                                payload:response.data.user
+                                payload:respon.data.user
                             })
                         }
                     }
@@ -453,7 +459,7 @@ function AuthContextProvider(props) {
                 let user=response.data.user;
     
                 for (let s = 0; s < user.follower.length; s++) {
-                    if(user.follower[s]==auth.user._id) {
+                    if(user.follower[s]===auth.user._id) {
                         user.follower.splice(s,1);
                     }
                 }
@@ -464,7 +470,7 @@ function AuthContextProvider(props) {
                     if(response.data.success){
                         let newUser=response.data.user;
                         for (let i = 0; i < newUser.following.length; i++) {
-                            if(newUser.following[i]==authorId) {
+                            if(newUser.following[i]===authorId) {
                                 newUser.following.splice(i,1);
                             }
                         }
@@ -536,13 +542,15 @@ function AuthContextProvider(props) {
         }
     }
 
-    auth.sendNotification=async function(workId, workType){
+    auth.sendNotification=async function(workId, workType,workName){
         try{
             console.log(auth.user);
             let notification = {"userId": auth.user._id,
                                 "userName": auth.user.profile.userName, 
                                 "workId": workId,
-                                "workType": workType};
+                                "workType": workType,
+                                "workName": workName
+                            };
             console.log(notification);    
             for(let i=0; i<auth.user.follower.length; i++){
                 const response = await api.getUserbyId(auth.user.follower[i]);
@@ -553,6 +561,7 @@ function AuthContextProvider(props) {
                     const respon = await api.updateUser(user);
                     if(respon.data.success){
                         console.log("notification send successfully");
+                        console.log(respon.data.user);
                     }
                 }
             }
@@ -561,6 +570,23 @@ function AuthContextProvider(props) {
             console.log("send notification error");
         }
     }
+    auth.loadNotification= async function(){
+        try{     
+            const response = await api.getUserbyId(auth.user._id);
+            if(response.data.success){
+                let user=response.data.user;
+                    authReducer({
+                        type: AuthActionType.UPDATE_USER,
+                        payload:user
+                    })             
+            }
+        }
+        catch(err){
+        
+            console.log("load notification error");
+        }
+    }
+
 
     
     return (
