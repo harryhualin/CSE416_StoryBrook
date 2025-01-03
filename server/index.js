@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
 // CREATE OUR SERVER
 dotenv.config();
 const PORT = process.env.PORT || 4000;
@@ -13,9 +14,8 @@ app.use(cors());
 
 
 // SETUP THE MIDDLEWARE
-app.use(express.urlencoded({ limit: '200mb',extended: true }))
-
-app.use(express.json({limit: '200mb'}))
+app.use(bodyParser.json());
+app.use(express.json())
 app.use(cookieParser())
 
 // SETUP OUR OWN ROUTERS AS MIDDLEWARE
@@ -44,9 +44,4 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 app.get('/', function getHello(req, res, next) {
     res.send('Hello World!');
 });
-
-
-
-// open port to allow connection
-app.listen(8080);
 
