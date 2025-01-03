@@ -12,7 +12,7 @@ const app = express()
 /* Access-Control-Allow-Origin: * */
 app.use(cors({
 
-    origin: ["http://localhost:3000","https://storybrook.netlify.app/","*"],        //http://localhost:3000
+    origin: ["http://localhost:3000","https://storybrook.netlify.app"],        //http://localhost:3000
 
     credentials: true
 }))
