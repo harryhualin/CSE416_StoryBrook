@@ -22,7 +22,6 @@ export default function SplashScreen() {
         event.preventDefault();
         event.stopPropagation();
         console.log(status);
-        auth.getUserList();
         store.stat(status);
         
     }
